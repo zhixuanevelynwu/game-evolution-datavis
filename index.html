@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Evolution of Games</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/d3-path.v2.min.js"></script>
+    <script src="https://d3js.org/d3-shape.v2.min.js"></script>
+    <script src="https://d3js.org/d3-color.v2.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v2.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v2.min.js"></script>
+    <script src="https://unpkg.com/react/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone/babel.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        var color1 = '#f6fde9';
+        var color2 = '#0d0618'; 
+        var color3 = '#5eff49';
+
+        // heatmap
+        const WIDTH = 1240;
+        const HEIGHT = 600;
+        const margin = { top: 200, right: 40, bottom: 60, left: 150 };
+        const csvUrl = 'data/gamesheat.csv'
+        // genre,year,sales
+        function useData(csvPath) {
+            const [dataAll, setData] = React.useState(null);
+            React.useEffect(() => {
+                d3.csv(csvPath).then(data => {
+                    data.forEach(d => {
+                        d.genre = d.genre;
+                        d.year = +d.year;
+                        d.sales = +d.sales;
+                    });
+                    setData(data);
+                });
+            }, []);
+            return dataAll;
+        }
+
+        function removeDuplicates(data) {
+            const temp = data.map(d => d.genre)
+            return temp.filter((d, idx) => temp.indexOf(d) === idx);
+        }
+
+        function Cell({ d, xScale, yScale, color, selectedGenre, setSelectedGenre, selectedYear, setSelectedYear }) {
+            const mouseOver = d => {
+                setSelectedGenre(d.genre);
+                setSelectedYear(d.year);
+            };
+            const mouseOut = () => {
+                setSelectedGenre(null);
+                setSelectedYear(null);
+            };
+            //var scolor = d => (d.genre === selectedGenre || d.year === selectedYear) ? 'red' : color1;
+            var offset = d => (d.genre === selectedGenre || d.year === selectedYear) ? 0 : 8;
+            return <g transform={`translate(${xScale(d.year)}, ${yScale(d.genre)})`} >
+                <rect width={xScale.bandwidth()} height={yScale.bandwidth()} fill={color}
+                    onMouseOver={() => mouseOver(d)} onMouseOut={mouseOut} 
+                    strokeWidth={offset(d)}
+                    stroke={color1}/>
+            </g>
+        }
+        function Legend({ gradientID, x, y, width, height = 20, numberOfStops, rangeOfValues, getColor }) {
+            const gradient = `url(#${gradientID})`;
+            const offsets = d3.range(numberOfStops);
+            const [start, end] = rangeOfValues;
+            const xScale = d3.scaleLinear().range([x, width]).domain(rangeOfValues).nice();
+            const ticks = xScale.ticks(5);
+            return <g>
+                <defs>
+                    <linearGradient id={gradientID} x1="0%" y1="0%" x2="100%" y2="0%">
+                        {ticks.map(tick => {
+                            return <stop key={`${tick}stop`} offset={`${100 * tick / (end - start)}%`}
+                                stopColor={getColor(tick)} />
+                        })}
+                    </linearGradient>
+                </defs>
+                <rect x={x} y={y} width={width} height={height} style={{ fill: gradient }} />
+                {ticks.map(tick => {
+                    return <g key={tick} transform={`translate(${xScale(tick)}, ${y})`}>
+                        <line y2={height} stroke={'white'} />
+                        <text style={{ textAnchor: 'middle'}} y={height + 15}>
+                            {tick}
+                        </text>
+                    </g>
+                })}
+            </g>
+        }
+
+        function Year({ YEAR, xScale, selectedYear }) {
+            return <g>
+                {YEAR.map(s => {
+                    if (s === selectedYear) {
+                        return <g key={s} transform={`translate(${xScale(s) + 5},-8)rotate(60)`}>
+                            <text className="selected" style={{ fill: '#ad2306', fontSize: '20px', textAnchor: 'end' }}>{s}</text>
+                        </g>
+                    } else {
+                        return <g key={s} transform={`translate(${xScale(s) + 5},-8)rotate(60)`}>
+                            <text style={{ textAnchor: 'end' }}>{s}</text>
+                        </g>
+                    }
+                })}
+            </g>
+        }
+
+        function Genre({ GENRE, yScale, selectedGenre}) {
+            return <g>
+                {GENRE.map(m => {
+                    if (m === selectedGenre)
+                        return <text className="selected" key={m} style={{ fill: '#ad2306', fontSize: '20px', textAnchor: 'middle' }} x={-50} y={yScale(m) + 10}>{m}</text>
+                    else
+                        return <text key={m} style={{ textAnchor: 'middle' }} x={-50} y={yScale(m) + 10}>{m}</text>
+                })}
+            </g>
+        }
+
+        function HeatMap(props) {
+            const [selectedGenre, setSelectedGenre] = React.useState(null);
+            const [selectedYear, setSelectedYear] = React.useState(null);
+            //console.log(selectedGenre);
+            const data = useData(csvUrl);
+            if (!data) {
+                return <pre>Loading...</pre>;
+            };
+            const YEAR = [];
+            // years from 1980 to 2015
+            for (let i = 1980; i <= 2015; i++) {
+                YEAR.push(i);
+            }
+            const GENRE = removeDuplicates(data);
+            const height = HEIGHT - margin.top - margin.bottom;
+            const width = WIDTH - margin.left - margin.right;
+            const xScale = d3.scaleBand()
+                .range([0, width])
+                .domain(YEAR);
+            const yScale = d3.scaleBand()
+                .range([0, height])
+                .domain(GENRE);
+
+            const colorScale = d3.interpolateRgb(color1, color2);
+            //const colorScale = d3.interpolateGnBu;
+            const getColor = d3.scaleSequential(colorScale)
+                .domain([d3.min(data, d => d.sales), d3.max(data, d => d.sales)]);
+            return <svg width={WIDTH} height={HEIGHT}>
+                <g transform={`translate(${margin.left + 40}, ${margin.top - 150})`}>
+                    {data.map(d => {
+                        return <Cell key={d.genre + d.year} d={d} xScale={xScale} yScale={yScale}
+                            color={getColor(d.sales)} 
+                            selectedGenre={selectedGenre}
+                            setSelectedGenre={setSelectedGenre} 
+                            selectedYear={selectedYear}
+                            setSelectedYear={setSelectedYear}/>
+                    })}
+                    <Year YEAR={YEAR} xScale={xScale} selectedYear={selectedYear} />
+                    <Genre GENRE={GENRE} yScale={yScale} selectedGenre={selectedGenre} />
+                    <Legend gradientID={'gradient'} x={0} y={height + 10} width={width / 2} numberOfStops={5}
+                        rangeOfValues={[0, d3.max(data, d => d.sales)]} getColor={getColor} />
+                </g>
+            </svg>
+        }
+        ReactDOM.render(<HeatMap />, document.getElementById('root'));
+    </script>
+</body>
+
+</html>
