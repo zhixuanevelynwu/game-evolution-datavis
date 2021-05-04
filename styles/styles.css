@@ -1,0 +1,81 @@
+@font-face {
+    font-family: gamefont;
+    src: url(../fonts/ufonts.com_agamefont.ttf);
+}
+
+@font-face {
+    font-family: selectedfont;
+    src: url(../fonts/ufonts.com_fanfaretickerbackground.ttf);
+}
+
+body {
+    color: #f6fde9;
+    font-family: gamefont;
+    background-color: #f6fde9;
+    color: #0d0618c2;
+}
+
+input {
+    position: relative;
+    top: -520px;
+    left: 200px;
+    -webkit-appearance: none;
+    width: 800px;
+    height: 5px;
+    border-radius: 5px;
+    background: #0d0618;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+  
+input:hover {
+    opacity: 1;
+}
+  
+input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #9e0000;
+    cursor: pointer;
+}
+  
+input::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #9e0000;
+    cursor: pointer;
+}
+
+text {
+    fill: #0d0618;
+    color: #0d0618;
+}
+
+::-moz-selection { /* for Firefox */
+    background: #9e0000;
+    fill: white;
+}
+  
+::selection {
+    background: #9e0000;
+    fill: white;
+}
+
+.paragraph{
+    color: black;
+    background: #b8ffbc;
+    font-size: 50px;
+    font-family: gamefont;
+}
+
+.selected {
+    transition: .5s;
+}
+
+
