@@ -93,9 +93,9 @@
                 setSelectedYear(null);
             };
             //var scolor = d => (d.genre === selectedGenre || d.year === selectedYear) ? 'red' : color1;
-            var offset = d => (d.genre === selectedGenre || d.year === selectedYear) ? 0 : 8;
+            var offset = d => (d.genre === selectedGenre || d.year === selectedYear) ? 0 : 5;
             return <g transform={`translate(${xScale(d.year)}, ${yScale(d.genre)})`} >
-                <rect width={xScale.bandwidth()} height={yScale.bandwidth()} fill={color}
+                <circle cx={xScale.bandwidth()} cy={yScale.bandwidth()} r={11} fill={color}
                     onMouseOver={() => mouseOver(d)} onMouseOut={mouseOut}
                     strokeWidth={offset(d)}
                     stroke={color1} />
@@ -107,7 +107,7 @@
             const [start, end] = rangeOfValues;
             const xScale = d3.scaleLinear().range([x, width]).domain(rangeOfValues).nice();
             const ticks = xScale.ticks(5);
-            return <g transform={`translate(${680}, ${300})rotate(-90)`}>
+            return <g transform={`translate(${680}, ${330})rotate(-90)`}>
                 <defs>
                     <linearGradient id={gradientID} x1="0%" y1="0%" x2="100%" y2="0%">
                         {ticks.map(tick => {
@@ -131,7 +131,7 @@
         function Year({ YEAR, xScale, selectedYear, year }) {
             const fontsize = d => (d != year) ? '18px' : '21px';
             const fontcolor = d => (d != year) ? color2 : color4;
-            return <g>
+            return <g transform={'translate(20, 15)'}>
                 {YEAR.map(s => {
                     if (s === selectedYear) {
                         return <g key={s} transform={`translate(${xScale(s) + 5},-8)rotate(60)`}>
@@ -147,7 +147,7 @@
         }
 
         function Genre({ GENRE, yScale, selectedGenre }) {
-            return <g>
+            return <g transform={'translate(0, 15)'}>
                 {GENRE.map(m => {
                     if (m === selectedGenre)
                         return <text className="selected" key={m} style={{ fill: color5, fontSize: '20px', textAnchor: 'middle' }} x={-50} y={yScale(m) + 10}>{m}</text>
@@ -188,14 +188,15 @@
         }
 
         function Bars(props) {
-            const { xScale, yScale, data, width, height, selectedGenre, setSelectedGenre, selectedName, setSelectedName, selectedYear, setSelectedYear } = props;
-
+            const { xScale, yScale, data, width, height, selectedGenre, setSelectedGenre, selectedName, setSelectedName, selectedYear, setSelectedYear, g } = props;
             const mouseOver = d => {
+                g.attr('display', 'block');
                 setSelectedName(d.name);
                 setSelectedGenre(d.genre);
                 setSelectedYear(d.year);
             };
             const mouseOut = () => {
+                g.attr('display', 'none');
                 setSelectedName(null);
                 setSelectedGenre(null);
                 setSelectedYear(null);
@@ -211,17 +212,18 @@
                 return color2
             }
             return <g>
+                <rect x={650} y={300} width={480} height={height} fill={'#0d0618c2'} />
                 {data.map((d) => {
                     let i = 0;
                     return <g transform={`translate(${0}, ${40})`}>
-                        <rect style={{ strokeWidth: '0px' }}
+                        <rect style={{ strokeWidth: '3px', stroke: color1 }}
                             transform={`translate(${0}, ${height})`}
-                            key={d.name + d.rank}
+                            key={d.name + d.platform}
                             x={xScale(d.name)}
                             y={yScale(d.global_sales)}
                             fill={color(d)}
-                            width={xScale.bandwidth() - 3}
-                            height={height - yScale(d.global_sales)}
+                            width={xScale.bandwidth()}
+                            height={height - yScale(d.global_sales) + 3}
                             onMouseOver={() => mouseOver(d)} onMouseOut={mouseOut}
                         />
                         <text style={{ fill: color(d), textAnchor: 'end', fontSize: '10px', transform: [{ rotate: '-65deg' }] }}
@@ -237,58 +239,105 @@
         }
 
         function BarChart(props) {
-            const { data, xScale, yScale, width, height, selectedGenre, setSelectedGenre, selectedName, setSelectedName, selectedYear, setSelectedYear } = props;
+            const { data, xScale, yScale, width, height, selectedGenre, setSelectedGenre, selectedName, setSelectedName, selectedYear, setSelectedYear, svg, g } = props;
             return <g transform={`translate(${margin.left}, ${130})`}>
                 <YAxes yScale={yScale} height={height} type={'barchart'} />
                 <XAxes xScale={xScale} width={innerWidth} height={height} type={'categorical'} />
                 <Bars xScale={xScale} yScale={yScale} data={data} width={innerWidth} height={height}
                     selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre}
                     selectedName={selectedName} setSelectedName={setSelectedName}
-                    selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
+                    selectedYear={selectedYear} setSelectedYear={setSelectedYear}
+                    svg={svg} g={g} />
             </g>
         }
 
         function Tooltip(props) {
-            const { selectedGame, width, height } = props;
+            const { selectedGame, width, height, svg, g } = props;
             if (!selectedGame) {
-                return <g></g>;
+                return <g transform={`translate(${width + 166}, ${height * 2 - 40})`}>
+                    <text style={{ fill: 'white', fontSize: '22px' }}>
+                        The Evolution of Video Games(1980 - 2015)
+                    </text>
+                </g>;
             } else {
-                return <g transform={`translate(${width + 170}, ${height*2-50})`}>
-                    <text font-weight="bold" style={{ fill: color4, fontSize: '20px' }} >
+                var c1 = '#dadada',
+                    c2 = '#B1B1B1',
+                    c3 = '#747474',
+                    c4 = '#0A0708';
+                var color = d3.scaleOrdinal([c1, c2, c3, c4]);
+                var radius = Math.min(width, height) / 2 - 40;
+                var pie = d3.pie();
+                var arc = d3.arc()
+                    .innerRadius(0)
+                    .outerRadius(radius);
+
+                var arcs = g.selectAll("arc")
+                    .data(pie([selectedGame.jp_sales, selectedGame.na_sales, selectedGame.eu_sales, selectedGame.other_sales]))
+                    .enter()
+                    .append("g")
+                    .attr("class", "arc")
+
+                arcs.append("path")
+                    .attr("fill", function (d, i) {
+                        return color(i);
+                    })
+                    .attr("d", arc);
+                return <g transform={`translate(${width + 170}, ${height * 2 - 50})`}>
+                    <text fontWeight="bold" style={{ fill: 'red', fontSize: '16px' }} >
                         {selectedGame.name}
                     </text>
-                    <text transform={'translate(0,20)'}> 
+                    <text transform={'translate(0,20)'} style={{ fill: color1 }}>
                         {'Publisher: '}
                         {selectedGame.publisher}
                     </text>
-                    <text transform={'translate(0,40)'}> 
+                    <text transform={'translate(0,40)'} style={{ fill: color1 }}>
                         {'Genre: '}
                         {selectedGame.genre}
                     </text>
-                    <text transform={'translate(0,60)'}> 
+                    <text transform={'translate(0,60)'} style={{ fill: color1 }}>
+                        {'Platform: '}
+                        {selectedGame.platform}
+                    </text>
+                    <text transform={'translate(0,80)'} style={{ fill: color1 }}>
                         {'Global Sales: '}
                         {selectedGame.global_sales}
                         {' million'}
                     </text>
-                    <text transform={'translate(0,80)'}> 
-                        {'Platform: '}
-                        {selectedGame.platform}
+                    <text transform={'translate(0,100)'} style={{ fill: 'white' }} fontWeight="bold">
+                        {'Game Regional Sales Volume'}
                     </text>
+                    <text transform={'translate(0,120)'} style={{ fill: c1 }}>
+                        {'Japan: '}
+                        {selectedGame.jp_sales}
+                        {' million'}
+                    </text>
+                    <text transform={'translate(0,140)'} style={{ fill: c2 }}>
+                        {'North America: '}
+                        {selectedGame.na_sales}
+                        {' million'}
+                    </text>
+                    <text transform={'translate(0,160)'} style={{ fill: c3 }}>
+                        {'Europe: '}
+                        {selectedGame.eu_sales}
+                        {' million'}
+                    </text>
+                    <text transform={'translate(0,180)'} style={{ fill: c4 }}>
+                        {'Other: '}
+                        {selectedGame.other_sales}
+                        {' million'}
+                    </text>
+
                 </g>
             };
         }
 
         function GameEv(props) {
             /* hooks */
-            const [year, setYear] = React.useState('35');
+            const [year, setYear] = React.useState('6');
             const [selectedGenre, setSelectedGenre] = React.useState(null);
             const [selectedYear, setSelectedYear] = React.useState(null);
             const [selectedName, setSelectedName] = React.useState(null);
-
-            /* slider */
-            const changeHandler = (event) => {
-                setYear(event.target.value);
-            }
+            const [index, setIndex] = React.useState('0');
 
             /* load tables */
             const data = useData(csvUrl);
@@ -341,12 +390,19 @@
             /*---barchart ends---*/
 
             /*---pie chart tooltips starts*/
+            var svg = d3.select("svg"),
+                g = svg.append("g").attr("transform", "translate(1100,560)").attr("class", "pie");
             const selectedGame = datab.filter(d => {
                 return d.name == selectedName && d.year == YEAR[year];
             })[0];
-            //console.log(selectedName);
-            //console.log(selectedGame);
+            const adj = ['best-sold', 'most popular', 'chart-topping'];
             /*---pie chart tooltips ends*/
+
+            /* slider */
+            const changeHandler = (event) => {
+                setYear(event.target.value);
+                setIndex(Math.floor(Math.random() * adj.length))
+            }
 
             return <div>
                 <svg width={1500} height={HEIGHT}>
@@ -361,7 +417,7 @@
                         })}
                         <Year YEAR={YEAR} xScale={xScale} selectedYear={selectedYear} year={YEAR[year]} />
                         <Genre GENRE={GENRE} yScale={yScale} selectedGenre={selectedGenre} />
-                        <Legend gradientID={'gradient'} x={0} y={height + 10} width={width / 3} numberOfStops={5}
+                        <Legend gradientID={'gradient'} x={0} y={height - 40} width={width / 3 + 40} numberOfStops={5}
                             rangeOfValues={[0, d3.max(data, d => d.sales)]} getColor={getColor} />
                     </g>
 
@@ -369,18 +425,22 @@
                         <BarChart data={data1} xScale={xScale1} yScale={yScale1} width={innerWidth} height={innerHeight}
                             selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre}
                             selectedName={selectedName} setSelectedName={setSelectedName}
-                            selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
+                            selectedYear={selectedYear} setSelectedYear={setSelectedYear}
+                            svg={svg} g={g} />
                     </g>
                     <g>
-                        <Tooltip width={innerWidth} height={innerHeight} selectedGame={selectedGame} />    
+                        <Tooltip width={innerWidth} height={innerHeight} selectedGame={selectedGame} svg={svg} g={g} />
                     </g>
                 </svg>
                 <div>
                     <input className="slider" key="slider" type='range' min='0' max='35' value={year} step='1' onChange={changeHandler} />
                     <div style={{ position: 'relative', top: -534, left: 1020, fontSize: '20px', color: color2 }}>{YEAR[year]}</div>
                 </div>
-                <div style={{ position: 'relative', top: -530, left: 520, fontSize: '15px', color: color2 }}>
-                    The Evolution of Video Games
+                <div style={{ position: 'relative', top: -530, left: 350, fontSize: '15px', color: color2 }}>
+                    {'In the year '}
+                    {YEAR[year]}
+                    {', '}
+                    {GENRE[0] + ' game was the ' + adj[index] + ' genre in the market'}
                 </div>
             </div>
         }
