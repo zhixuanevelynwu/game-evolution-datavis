@@ -12,7 +12,7 @@ body {
     color: #f6fde9;
     font-family: gamefont;
     background-color: #f6fde9;
-    color: #0d0618c2;
+    color: #3a3a3a57;
 }
 
 input {
@@ -75,7 +75,7 @@ text {
 }
 
 .selected {
-    transition: .5s;
+    transition: .4s;
 }
 
 
