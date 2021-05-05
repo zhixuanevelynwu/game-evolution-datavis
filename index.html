@@ -28,7 +28,7 @@
         // heatmap
         const WIDTH = 1150;
         const HEIGHT = 900;
-        const margin = { top: 220, right: 50, bottom: 60, left: 100 };
+        const margin = { top: 220, right: 50, bottom: 60, left: 165 };
         const csvUrl = 'data/gamesheat.csv'
         //const csvUrl1 = 'data/games_vis.csv'
         const csvUrl1 = 'data/games_rank.csv'
@@ -289,30 +289,10 @@
                 
                 const tipStyle = {
                     fill: 'white', 
-                    fontSize: '13px'
+                    fontSize: '13px',
                 }
                 return <g>
-                    <g transform={`translate(${left+10}, ${top-60})`}>
-                        <rect x={-5} y={-12} width={200} height={50} fill={'black'} />
-                        <text style={tipStyle}>
-                            {'Publisher: '}
-                            {selectedGame.publisher}
-                        </text>
-                        <text transform={'translate(0,10)'} style={tipStyle}>
-                            {'Genre: '}
-                            {selectedGame.genre} {' Game'}
-                        </text>
-                        <text transform={'translate(0,20)'} style={tipStyle}>
-                            {'Platform: '}
-                            {selectedGame.platform}
-                        </text>
-                        <text transform={'translate(0,30)'} style={tipStyle}>
-                            {'Global Sales: '}
-                            {selectedGame.global_sales}
-                            {' million'}
-                        </text>
-                    </g>
-                    <g transform={`translate(${width + 170}, ${height * 2 - 50})`}>
+                    <g transform={`translate(${width + 230}, ${height * 2 - 50})`}>
                         <rect className={'selected'} x={-20} y={-40} width={450} height={height - 10} fill={'#0d061800'} />
                         <text transform={'translate(0,10)'} fontWeight="bold" style={{ fill: color4, fontSize: '22px' }} >
                             {selectedGame.name}
@@ -346,10 +326,30 @@
                         </text>
                     </g>
 
+                    <g transform={`translate(${left+10}, ${top-60})`}>
+                        <rect x={-5} y={-12} width={200} height={50} fill={'black'} />
+                        <text style={tipStyle}>
+                            {'Publisher: '}
+                            {selectedGame.publisher}
+                        </text>
+                        <text transform={'translate(0,10)'} style={tipStyle}>
+                            {'Genre: '}
+                            {selectedGame.genre} {' Game'}
+                        </text>
+                        <text transform={'translate(0,20)'} style={tipStyle}>
+                            {'Platform: '}
+                            {selectedGame.platform}
+                        </text>
+                        <text transform={'translate(0,30)'} style={tipStyle}>
+                            {'Global Sales: '}
+                            {selectedGame.global_sales}
+                            {' million'}
+                        </text>
+                    </g>
                 </g>
             } else if (selectedGenreYear) {
-                return <g transform={`translate(${width + 180}, ${height * 2 - 10})`}>
-                    <text transform={'translate(10,20)'} style={{ fill: color4, fontSize: '40px' }}>
+                return <g transform={`translate(${width + 300}, ${height * 2 - 10})`}>
+                    <text transform={'translate(15,20)'} style={{ fill: color4, fontSize: '30px' }}>
                         {selectedGenreYear.genre} {' Game'}
                     </text>
                     <text transform={'translate(20,80)'} style={{ fill: color2, fontSize: '20px' }}>
@@ -427,7 +427,7 @@
             /*---pie chart tooltips starts*/
             var svg = d3.select("svg"),
                 g = svg.append("g")
-                    .attr("transform", "translate(1080,540)")
+                    .attr("transform", "translate(1110,540)")
                     .attr("class", "pie")
                     .attr("class", "selected");
             const selectedGame = datab.filter(d => {
