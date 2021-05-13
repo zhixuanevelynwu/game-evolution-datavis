@@ -17,8 +17,8 @@ body {
 
 input {
     position: relative;
-    top: -520px;
-    left: 200px;
+    top: -510px;
+    left: 250px;
     -webkit-appearance: none;
     width: 800px;
     height: 5px;
@@ -77,5 +77,23 @@ text {
 .selected {
     transition: .4s;
 }
-
+  
+.dropdown {
+    position: relative;
+    top: -500px;
+    left: 590px;
+    display: inline-block;
+}
+  
+select {
+    background-color: #0d0618;
+    font-family: gamefont;
+    font-size: 15px;
+    color: white;
+    padding: 5px;
+    transition: .4s;
+    width: 80px;
+    height: 30px;
+    border-color: #f6fde9;
+}
 
