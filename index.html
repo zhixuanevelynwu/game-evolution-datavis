@@ -95,7 +95,7 @@
             };
             var offset = d => (d.genre === selectedGenre || d.year === selectedYear) ? 0 : 5;
             return <g transform={`translate(${xScale(d.year)}, ${yScale(d.genre)})`} >
-                <circle className={'selected'} cx={xScale.bandwidth()} cy={yScale.bandwidth()} r={11} fill={color}
+                <circle className={'selected'} cx={xScale.bandwidth()} cy={yScale.bandwidth()} r={10} fill={color}
                     onMouseOver={() => mouseOver(d)} onMouseOut={mouseOut}
                     strokeWidth={offset(d)}
                     stroke={color1} />
@@ -189,7 +189,7 @@
 
         function Bars(props) {
             const { xScale, yScale, data, width, height, selectedGenre, setSelectedGenre,
-                selectedName, setSelectedName, selectedYear, setSelectedYear, g, setTooltipX, setTooltipY } = props;
+                selectedName, setSelectedName, selectedYear, setSelectedYear, g, setTooltipX, setTooltipY, selectRegion } = props;
             const mouseOver = d => {
                 g.attr('display', 'block');
                 setSelectedName(d.name);
@@ -225,10 +225,10 @@
                             transform={`translate(${0}, ${height})`}
                             key={d.name + d.platform}
                             x={xScale(d.name)}
-                            y={yScale(d.global_sales)}
+                            y={yScale(+eval("d."+selectRegion))}
                             fill={color(d)}
                             width={xScale.bandwidth()}
-                            height={height - yScale(d.global_sales) + 3}
+                            height={height - yScale(+eval("d."+selectRegion)) + 3}
                             onMouseOver={() => mouseOver(d)} onMouseOut={mouseOut}
                         />
                         <text style={{ fill: color(d), textAnchor: 'end', fontSize: '10px', transform: [{ rotate: '-65deg' }] }}
@@ -245,7 +245,7 @@
 
         function BarChart(props) {
             const { data, xScale, yScale, width, height, selectedGenre, setSelectedGenre,
-                selectedName, setSelectedName, selectedYear, setSelectedYear, svg, g, setTooltipX, setTooltipY } = props;
+                selectedName, setSelectedName, selectedYear, setSelectedYear, svg, g, setTooltipX, setTooltipY, selectRegion } = props;
             return <g transform={`translate(${margin.left}, ${130})`}>
                 <YAxes yScale={yScale} height={height} type={'barchart'} />
                 <XAxes xScale={xScale} width={innerWidth} height={height} type={'categorical'} />
@@ -253,7 +253,8 @@
                     selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre}
                     selectedName={selectedName} setSelectedName={setSelectedName}
                     selectedYear={selectedYear} setSelectedYear={setSelectedYear}
-                    svg={svg} g={g} setTooltipX={setTooltipX} setTooltipY={setTooltipY} />
+                    svg={svg} g={g} setTooltipX={setTooltipX} setTooltipY={setTooltipY}
+                    selectRegion={selectRegion} />
             </g>
         }
 
@@ -286,9 +287,9 @@
                         return color(i);
                     })
                     .attr("d", arc);
-                
+
                 const tipStyle = {
-                    fill: 'white', 
+                    fill: 'white',
                     fontSize: '13px',
                 }
                 return <g>
@@ -300,25 +301,25 @@
                         <text transform={'translate(60,205)'} style={{ fill: 'black', fontSize: '20px' }} fontWeight="bold">
                             {'Game Regional Sales Volume'}
                         </text>
-                        <rect x={0} y={31} width={170} height={20} fill={c1}/>
+                        <rect x={0} y={31} width={170} height={20} fill={c1} />
                         <text transform={'translate(5,45)'} style={{ fill: color2 }}>
                             {'Japan: '}
                             {selectedGame.jp_sales}
                             {' million'}
                         </text>
-                        <rect x={0} y={61} width={170} height={20} fill={c2}/>
+                        <rect x={0} y={61} width={170} height={20} fill={c2} />
                         <text transform={'translate(5,75)'} style={{ fill: color1 }}>
                             {'N.A.: '}
                             {selectedGame.na_sales}
                             {' million'}
                         </text>
-                        <rect x={0} y={91} width={170} height={20} fill={c3}/>
+                        <rect x={0} y={91} width={170} height={20} fill={c3} />
                         <text transform={'translate(5,105)'} style={{ fill: color1 }}>
                             {'Europe: '}
                             {selectedGame.eu_sales}
                             {' million'}
                         </text>
-                        <rect x={0} y={121} width={170} height={20} fill={c4}/>
+                        <rect x={0} y={121} width={170} height={20} fill={c4} />
                         <text transform={'translate(5,135)'} style={{ fill: color1 }}>
                             {'Other: '}
                             {selectedGame.other_sales}
@@ -326,7 +327,7 @@
                         </text>
                     </g>
 
-                    <g transform={`translate(${left+10}, ${top-60})`}>
+                    <g transform={`translate(${left + 10}, ${top - 60})`}>
                         <rect x={-5} y={-12} width={200} height={50} fill={'black'} />
                         <text style={tipStyle}>
                             {'Publisher: '}
@@ -373,6 +374,7 @@
             const [index, setIndex] = React.useState('0');
             const [tooltipX, setTooltipX] = React.useState(null);
             const [tooltipY, setTooltipY] = React.useState(null);
+            const [selectRegion, setSelectedRegion] = React.useState('global_sales');
 
             /* load tables */
             const data = useData(csvUrl);
@@ -420,7 +422,8 @@
                 .range([0, innerWidth]);
             const yScale1 = d3.scaleLinear()
                 .range([innerHeight, 0])
-                .domain([0, d3.max(data1, d => +d.global_sales)])
+                //.domain([0, d3.max(data1, d => eval(+d.global_sales))])
+                .domain([0, d3.max(data1, d => +eval("d."+selectRegion))])
                 .nice();
             /*---barchart ends---*/
 
@@ -444,6 +447,11 @@
                 setYear(event.target.value);
                 setIndex(Math.floor(Math.random() * adj.length))
             }
+            /* drop down menu */
+            const changeHandler1 = (event) => {
+                setSelectedRegion(event.target.value);
+            }
+            //console.log(selectRegion);
 
             return <div>
                 <svg width={1500} height={HEIGHT}>
@@ -467,7 +475,8 @@
                             selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre}
                             selectedName={selectedName} setSelectedName={setSelectedName}
                             selectedYear={selectedYear} setSelectedYear={setSelectedYear}
-                            svg={svg} g={g} setTooltipX={setTooltipX} setTooltipY={setTooltipY} />
+                            svg={svg} g={g} setTooltipX={setTooltipX} setTooltipY={setTooltipY}
+                            selectRegion={selectRegion} />
                     </g>
                     <g>
                         <Tooltip width={innerWidth} height={innerHeight} selectedGame={selectedGame} selectedGenreYear={selectedGenreYear}
@@ -476,13 +485,21 @@
                 </svg>
                 <div>
                     <input className="slider" key="slider" type='range' min='0' max='35' value={year} step='1' onChange={changeHandler} />
-                    <div style={{ position: 'relative', top: -534, left: 1020, fontSize: '20px', color: color2 }}>{YEAR[year]}</div>
+                    <div style={{ position: 'relative', top: -523, left: 1075, fontSize: '20px', color: color2 }}>{YEAR[year]}</div>
                 </div>
-                <div style={{ position: 'relative', top: -530, left: 350, fontSize: '15px', color: color2 }}>
+                <div style={{ position: 'relative', top: -520, left: 370, fontSize: '15px', color: color2 }}>
                     {'In the year '}
                     {YEAR[year]}
                     {', '}
                     {GENRE[0] + ' game was the ' + adj[index] + ' genre in the market'}
+                </div>
+                <div className="dropdown">
+                    <select onChange={changeHandler1} className={'select'}>
+                        <option value="global_sales">Global</option>
+                        <option value="jp_sales">Japan</option>
+                        <option value="na_sales">N.A.</option>
+                        <option value="eu_sales">Europe</option>
+                    </select>
                 </div>
             </div>
         }
