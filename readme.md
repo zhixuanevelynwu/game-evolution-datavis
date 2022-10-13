@@ -10,10 +10,6 @@
 
 This is a storytelling visualization system of the historical data of world-wide video games throughout the past decades.
 
-## Getting Started <a name = "getting_started"></a>
-
-Here is an active link to this visualization: <a href="https://cims.nyu.edu/~zw1887/datavis/vg_evolution/">Evolution of Video Games</a>
-
 ## Usage <a name = "usage"></a>
 
 The visualization includes linked highlighting, filters, and different views.
